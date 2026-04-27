@@ -1,0 +1,140 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<style>
+    /* ОБЩИЕ НАСТРОЙКИ */
+    .content-wrapper { display: flex; gap: 30px; margin-top: 20px; align-items: flex-start; }
+    
+    /* ЛЕВАЯ КОЛОНКА (МИССИИ, СЮЖЕТ, ГАЛЕРЕЯ) */
+    .left-col { flex: 2; }
+    
+    /* ПРАВАЯ КОЛОНКА (ПЕРСОНАЖИ) */
+    .right-col { flex: 1; min-width: 300px; position: sticky; top: 80px; }
+
+    /* ШАПКА МЕДИА */
+    .media-header { 
+        background: #111; 
+        padding: 20px; 
+        border-radius: 10px; 
+        border-bottom: 3px solid #e50914;
+        margin-bottom: 30px;
+    }
+    .movie-poster { width: 150px; border-radius: 4px; object-fit: cover; }
+    .movie-title { font-size: 1.8rem; font-weight: 900; color: #fff; margin: 0; }
+    .movie-desc { color: #ccc; font-size: 0.95rem; margin-top: 10px; line-height: 1.5; }
+
+    /* РЕЙТИНГ И СТАТУС */
+    .rating-badge {
+        background: #000;
+        border: 1px solid #ffc107;
+        padding: 5px 15px;
+        border-radius: 5px;
+        text-align: center;
+    }
+    .rating-value { color: #ffc107; font-size: 1.5rem; font-weight: 900; }
+    .status-badge { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* СТИЛЬ ИНФО-БЛОКОВ */
+    .info-block {
+        background: #161616;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #222;
+    }
+    .info-title { color: #e50914; font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
+    .info-text { color: #ffffff !important; font-size: 0.95rem; line-height: 1.6; white-space: pre-line; }
+
+    /* ВЕРДИКТ (ОСОБЫЙ СТИЛЬ) */
+    .verdict-block {
+        background: rgba(229, 9, 20, 0.05);
+        border: 1px solid #e50914;
+        border-left: 5px solid #e50914;
+    }
+
+    /* ГАЛЕРЕЯ */
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 15px; }
+    .screenshot-container { 
+        overflow: hidden; border-radius: 6px; border: 1px solid #333; aspect-ratio: 16/9; background: #000;
+    }
+    .screenshot-item { 
+        width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; cursor: pointer;
+    }
+    .screenshot-item:hover { transform: scale(1.08); }
+
+    /* СТИЛЬ ПЕРСОНАЖЕЙ (ПРАВО) */
+    .char-side-card {
+        background: #1a1a1a; border: 1px solid #333; border-radius: 6px; display: flex; padding: 10px; margin-bottom: 10px; align-items: center;
+    }
+    .char-side-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #e50914; margin-right: 12px; }
+    .char-side-name { color: #e50914; font-weight: bold; font-size: 0.9rem; margin-bottom: 2px; }
+    .char-side-desc { color: #ffffff !important; font-size: 0.8rem; line-height: 1.3; }
+</style>
+
+<div class="media-header d-flex align-items-center shadow-sm">
+    <img src="{{ movie.poster.url }}" class="movie-poster me-4 shadow">
+    <div class="flex-grow-1">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="movie-title text-uppercase">{{ movie.title }}</h1>
+                <div class="mt-1">
+                    <span class="badge bg-danger status-badge">{{ movie.get_category_display }}</span>
+                    <span class="badge bg-dark border border-secondary status-badge ms-1">{{ movie.get_status_display }}</span>
+                </div>
+            </div>
+            <div class="rating-badge">
+                <div style="font-size: 0.6rem; color: #aaa; margin-bottom: -5px;">MY SCORE</div>
+                <div class="rating-value">{{ movie.rating }}<span style="font-size: 0.8rem; opacity: 0.5;">/10</span></div>
+            </div>
+        </div>
+        <p class="movie-desc">{{ movie.description }}</p>
+    </div>
+</div>
+
+<div class="content-wrapper">
+    <div class="left-col">
+        
+        {% if movie.verdict %}
+        <div class="info-block verdict-block">
+            <div class="info-title text-uppercase small" style="color: #fff;">Мой Вердикт</div>
+            <div class="info-text" style="font-style: italic; color: #fff !important;">"{{ movie.verdict }}"</div>
+        </div>
+        {% endif %}
+
+        {% for info in movie.extras.all %}
+        <div class="info-block">
+            <div class="info-title text-uppercase small">{{ info.title }}</div>
+            <div class="info-text">{{ info.content }}</div>
+        </div>
+        {% endfor %}
+
+        <div class="info-block">
+            <div class="info-title text-uppercase small" style="color: #ffc107; border-color: #ffc107;">Медиа-галерея</div>
+            <div class="gallery-grid">
+                {% for shot in movie.screenshots.all %}
+                <div class="screenshot-container">
+                    <img src="{{ shot.image.url }}" class="screenshot-item">
+                </div>
+                {% empty %}
+                <p class="text-muted small m-0">Здесь пока пусто.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <h5 class="text-white text-uppercase mb-3" style="font-size: 0.8rem; letter-spacing: 2px; border-left: 3px solid #e50914; padding-left: 10px;">Действующие лица</h5>
+        {% for char in movie.characters.all %}
+        <div class="char-side-card">
+            {% if char.photo %}
+                <img src="{{ char.photo.url }}" class="char-side-img">
+            {% endif %}
+            <div>
+                <div class="char-side-name">{{ char.name }}</div>
+                <div class="char-side-desc">{{ char.description }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

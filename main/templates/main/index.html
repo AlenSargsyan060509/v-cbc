@@ -1,0 +1,77 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<style>
+    /* Стили для карточек, чтобы они выглядели одинаково и аккуратно */
+    .card {
+        transition: transform 0.3s ease, border-color 0.3s ease;
+        background: #111 !important;
+        border: 1px solid #333 !important;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        border-color: #e50914 !important;
+    }
+    .card-img-top {
+        border-bottom: 2px solid #e50914;
+    }
+    .badge-rating {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border: 1px solid #ffc107;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold m-0 text-white">Моя коллекция</h2>
+        
+        <div class="btn-group">
+            <a href="{% url 'index' %}" class="btn btn-outline-danger btn-sm {% if not request.GET.cat %}active{% endif %}">Все</a>
+            <a href="?cat=movie" class="btn btn-outline-danger btn-sm {% if request.GET.cat == 'movie' %}active{% endif %}">Фильмы</a>
+            <a href="?cat=series" class="btn btn-outline-danger btn-sm {% if request.GET.cat == 'series' %}active{% endif %}">Сериалы</a>
+            <a href="?cat=game" class="btn btn-outline-danger btn-sm {% if request.GET.cat == 'game' %}active{% endif %}">Игры</a>
+        </div>
+    </div>
+
+    {% if query %}
+    <div class="alert alert-dark border-secondary py-2 mb-4">
+        <span class="text-muted">Результаты поиска по запросу:</span> <strong class="text-white">"{{ query }}"</strong>
+        <a href="{% url 'index' %}" class="float-end text-danger text-decoration-none small">Сбросить</a>
+    </div>
+    {% endif %}
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+        {% for movie in movies %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <img src="{{ movie.poster.url }}" class="card-img-top" style="height: 300px; object-fit: cover;" alt="{{ movie.title }}">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-danger text-uppercase" style="font-size: 0.65rem;">{{ movie.get_category_display }}</span>
+                        <span class="badge-rating small">★ {{ movie.rating }}</span>
+                    </div>
+                    
+                    <h5 class="card-title text-white fw-bold mb-2">{{ movie.title }}</h5>
+                    <p class="card-text text-secondary small flex-grow-1">
+                        {{ movie.description|truncatechars:85 }}
+                    </p>
+                    
+                    <a href="{% url 'movie_detail' movie.id %}" class="btn btn-danger btn-sm w-100 mt-3 fw-bold">ОТКРЫТЬ ФАНДОМ</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="display-1 text-muted mb-3">📂</div>
+            <h4 class="text-muted">Ничего не найдено</h4>
+            <p class="text-secondary">Попробуй изменить запрос или категорию</p>
+            <a href="{% url 'index' %}" class="btn btn-outline-danger mt-2">Вернуться к списку</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
